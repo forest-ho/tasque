@@ -1,12 +1,28 @@
 import sqlite3
+from contextvars import ContextVar
 from pathlib import Path
 
 DB_PATH = Path(__file__).with_name("quest_app.db")
+SESSION_DB_PATH = ContextVar("session_db_path", default=None)
+
+
+def set_db_path(path):
+    """SQLiteの保存先を設定する。"""
+    global DB_PATH
+    DB_PATH = Path(path)
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+
+def set_session_db_path(path):
+    """現在のStreamlitセッション専用のSQLite保存先を設定する。"""
+    db_path = Path(path)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    SESSION_DB_PATH.set(db_path)
 
 
 def get_connection():
     """SQLiteへの接続を作る関数。"""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(SESSION_DB_PATH.get() or DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
