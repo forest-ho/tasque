@@ -13,7 +13,7 @@ IMPORTANCE_LABELS = {
 
 def get_damage_and_exp(importance):
     """重要度に応じてダメージとEXPを返す。"""
-    key = importance.lower()
+    key = str(importance).strip().lower() if importance is not None else ""
     if key not in IMPORTANCE_RULES:
         key = "medium"
     return IMPORTANCE_RULES[key]["damage"], IMPORTANCE_RULES[key]["exp"]
@@ -21,6 +21,10 @@ def get_damage_and_exp(importance):
 
 def get_progress_ratio(done_count, total_count):
     """達成率を0〜1の範囲で返す。"""
+    if total_count in (None, 0):
+        return 0.0
+    done_count = max(0, done_count)
+    total_count = max(0, total_count)
     if total_count == 0:
         return 0.0
-    return done_count / total_count
+    return min(1.0, done_count / total_count)
